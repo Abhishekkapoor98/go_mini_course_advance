@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 
 type contextKey string
@@ -57,6 +58,18 @@ func processTrucks(ctx context.Context, t []Truck) error {
 
 	userId := ctx.Value(userIDKey)
 	fmt.Printf("User ID from context: %v\n", userId)
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	// Simulate the long running process:
+	delay := time.Second * 3
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(delay):
+		break
+	}
 
 	for _, truck := range t {
 		if err := truck.LoadTruck(); err != nil {
